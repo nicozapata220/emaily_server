@@ -2,7 +2,9 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const keys = require("./config/keys");
+require("./models/User");
 require("./services/passport");
+
 
 //hago la conexión a la DB
 mongoose.connect(keys.mongoURI)
