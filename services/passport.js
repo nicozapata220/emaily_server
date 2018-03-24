@@ -5,6 +5,16 @@ const mongoose = require("mongoose");
 
 const User = mongoose.model("users");
 
+passport.serializeUser((user, done) => {
+  done(null, user.id);
+})
+passport.deserializeUser((id, done) => {
+  User.findById(id)
+    .then(user => {
+      done(null, user)
+    })
+})
+
 passport.use(
   new GoogleStrategy(
     {
@@ -13,9 +23,20 @@ passport.use(
       callbackURL: "/auth/google/callback"
     },
     (accessToken, refreshToken, profile, done) => {
-      new User({
-        googleId: profile.id
-      }).save();
+      User.findOne({ googleId: profile.id })
+        .then(existingUser => { //como el find es async, hago una promesa con then.
+          if (existingUser) {
+            //Ya existe un usuario, no hace falta que lo cree.
+            done(null, existingUser);
+          } else {
+            new User({ googleId: profile.id })
+              .save()
+              .then(user => {
+                done(null, user)
+              });
+          }
+        }
+        )
     }
   )
 );
